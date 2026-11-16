@@ -193,4 +193,45 @@ GitHub App 的 Repository access 如果选的是「All repositories」，那么�
 
 ---
 
+## 九、后续复测记录（2026-11-16）
+
+环境已发生变化，第八节的障碍在本日全部解除，但**连接器的只读限制未变**。
+
+### 环境变化
+
+| 项 | 11-12 | 11-16 |
+|---|---|---|
+| Homebrew | ❌ 崩于 macOS 27.0（4.4.5） | ✅ 7.0.13 正常 |
+| `gh` CLI | ❌ 未安装 | ✅ v2.104.0（`/opt/homebrew/bin/gh`） |
+| gh 登录 | — | ✅ 设备码登录，身份 `yujian886` |
+| 本机 GitHub 凭据 | ❌ 无 | ✅ 由 gh 凭据助手托管 |
+
+### 复测项一：连接器写入（无变化）
+
+```
+PUT /repos/yujian886/gitdemo/contents/README.md
+403 Resource not accessible by integration
+```
+
+结论不变：**MCP 连接器通道仍为只读**，这是 GitHub App 的权限声明所致，与本机环境无关。
+
+### 复测项二：gh CLI 本地通道（全部通过）
+
+| 动作 | 结果 |
+|---|---|
+| 初始化仓库并推送首个提交到 `master` | ✅ 提交 `23f504b`，`[new branch] master -> master` |
+| 创建分支 `add-github-status-report` 并推送报告 | ✅ 提交 `5bf6886` |
+| 创建 Pull Request | ✅ PR #1：https://github.com/yujian886/gitdemo/pull/1 |
+
+### 结论修正
+
+读写能力应分开表述：
+
+- **读**：MCP 连接器通道，✅ 可用，无需额外配置
+- **写**：`gh` CLI 本地通道，✅ 可用（需 gh 已安装并登录）；MCP 连接器通道 ❌ 不可用
+
+也就是说，WorkBuddy 里的写操作能否成功，取决于本机有没有 `gh`，而不是取决于连接器授权。
+
+---
+
 *本报告由 WorkBuddy 自动生成，所有数据均来自 GitHub 实时接口调用与本地命令实测，未做人工补全。*
